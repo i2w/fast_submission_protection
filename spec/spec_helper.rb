@@ -1,0 +1,1 @@
+require 'timed_spam_rejection'
