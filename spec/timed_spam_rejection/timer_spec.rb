@@ -11,23 +11,9 @@ describe TimedSpamRejection::Timer do
     
     it { should be_a TimedSpamRejection::Timer }
     
-    describe '#start' do
-      subject { timer.start }
-      
-      it 'should start the timer' do
-        subject
-        timer.started.should == started_at
-      end
-    end
-    
-    context 'when not started' do
-      its(:finish) { expect{ subject }.to raise_error TimedSpamRejection::NotStartedError }
-      its(:too_fast?) { should == true }
-    end
-      
-    context 'when started' do
-      before do timer.start end
-      
+    describe 'after creation' do
+      before do timer end
+        
       context 'and not enough time passes' do
         before do now_service.stub(:now).and_return(started_at + delay) end
 
@@ -37,7 +23,7 @@ describe TimedSpamRejection::Timer do
       
       context 'and enough time passes' do
         before do now_service.stub(:now).and_return(started_at + delay + 1) end
-          
+        
         its(:finish) { expect{ subject }.to_not raise_error }
         its(:too_fast?) { should == false }
       end
@@ -56,7 +42,7 @@ describe TimedSpamRejection::Timer do
       
       it 'uses DateTime as the now_service' do
         DateTime.should_receive(:now)
-        subject.start
+        subject
       end
     end
   end

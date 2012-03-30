@@ -2,7 +2,6 @@ module TimedSpamRejection
   Delay = 5
   
   class Error < RuntimeError; end
-  class NotStartedError < Error; end
   class TooFastError < Error; end
   
   class Timer
@@ -11,25 +10,24 @@ module TimedSpamRejection
     def initialize delay = nil, timer = nil
       @delay = delay || Delay
       @timer = timer || DateTime
-    end
-    
-    def start
-      @started = @timer.now
+      start
     end
     
     def finish
-      if started
-        earliest_finish_time = started + delay
-        @timer.now > earliest_finish_time or raise TooFastError
-      else
-        raise NotStartedError
-      end
+      earliest_finish_time = started + delay
+      @timer.now > earliest_finish_time or raise TooFastError
     end
     
+    # wrapper for #finish which returns a boolean
     def too_fast?
       finish && false
     rescue TimedSpamRejection::Error
       true
+    end
+    
+  private
+    def start
+      @started = @timer.now
     end
   end
 end

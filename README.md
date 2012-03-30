@@ -1,6 +1,6 @@
 # TimedSpamRejection
 
-Rails plugin that facilitates rejecting spam based on how long the form submission took.
+ActionController plugin that facilitates rejecting spam based on how long the form submission took.
 
 This plugin was developed by [Ian White](http://github.com/ianwhite) and [Nicholas Rutherford](http://github.com/nruth) while working at [Distinctive Doors](http://distinctivedoors.co.uk) who have kindly agreed to release under the MIT-LICENSE.
 
