@@ -5,7 +5,7 @@ module TimedSpamRejection
   class NotStartedError < Error; end
   class TooFastError < Error; end
   
-  class Rejector
+  class Timer
     attr_reader :started, :delay
     
     def initialize delay = nil, timer = nil
@@ -24,6 +24,12 @@ module TimedSpamRejection
       else
         raise NotStartedError
       end
+    end
+    
+    def too_fast?
+      finish && false
+    rescue TimedSpamRejection::Error
+      true
     end
   end
 end
