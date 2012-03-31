@@ -22,7 +22,7 @@ In your Gemfile:
       reject_fast_submission :delay => 10.seconds, :message => 'Whoah cowboy!'
     end
 
-If a the time taken between the `new` and `create` action is less than than the delay, an alert
+If the time taken between the `new` and `create` action is less than than the delay, an alert
 is added to the flash, and the `new` action is re-rendered.
 
 ## Development

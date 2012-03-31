@@ -24,6 +24,10 @@ describe 'A controller with reject_fast_create' do
       render :nothing => true
     end
     
+    def index
+      render :nothing => true
+    end
+    
     def in_new; end
     def in_create; end
   end
@@ -94,7 +98,29 @@ describe 'A controller with reject_fast_create' do
         clock.stub(:now).and_return Time.now
         get :new
       end
-        
+      
+      context 'when enough time has passed' do
+        before do
+          now = clock.now + 6.seconds
+          clock.stub(:now).and_return now
+        end
+
+        it_should_behave_like 'a non spammy form posting'
+      end
+      
+      context 'and another action is requested in the meantime' do
+        before do get :index end
+
+        context 'and enough time has passed' do
+          before do
+            now = clock.now + 6.seconds
+            clock.stub(:now).and_return now
+          end
+
+          it_should_behave_like 'a non spammy form posting'
+        end
+      end
+      
       context 'when not enough time has passed' do
         before do
           now = clock.now + 4.seconds
@@ -122,15 +148,6 @@ describe 'A controller with reject_fast_create' do
             it_should_behave_like 'a non spammy form posting'
           end
         end
-      end
-      
-      context 'when enough time has passed' do
-        before do
-          now = clock.now + 6.seconds
-          clock.stub(:now).and_return now
-        end
-
-        it_should_behave_like 'a non spammy form posting'
       end
     end 
   end
