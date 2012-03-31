@@ -89,6 +89,7 @@ describe 'A controller with reject_fast_create' do
       let(:clock) { double }
       
       before do
+        # The only thing we're stubbing in this integration spec is the time
         TimedSpamRejection::Timer.stub(:clock).and_return(clock)
         clock.stub(:now).and_return Time.now
         get :new

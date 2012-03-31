@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Reject form submissions based on the time taken to submit them"
   s.description = "Reject form submissions based on the time taken to submit them. Version #{TimedSpamRejection::VERSION}"
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails"
