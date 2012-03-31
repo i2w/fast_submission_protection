@@ -17,15 +17,16 @@ describe TimedSpamRejection::ActionController do
       let(:delay)                   { 20 }
       let(:message)                 { 'Oh yeah!' }
       
-      it 'should create a before_filter on :new with a new TimerFilter for the delay' do
-        TimedSpamRejection::ActionController::TimerFilter.should_receive(:new).with(delay).and_return(filter = double)
+      it 'should create a before_filter on :new with a new TimerCreator for the delay' do
+        TimedSpamRejection::ActionController::TimerCreator.should_receive(:new).with(delay).and_return(filter = double)
         klass.should_receive(:before_filter).with(filter, :only => :new)
         subject
       end
       
-      it 'should create a before_filter on :create with a new RejectorFilter for the message' do
-        TimedSpamRejection::ActionController::RejectorFilter.should_receive(:new).with(message).and_return(filter = double)
-        klass.should_receive(:before_filter).with(filter, :only => :create)
+      it 'should create a before_filter on :create with a new Rejector for the timer creator & message' do
+        TimedSpamRejection::ActionController::TimerCreator.should_receive(:new).with(delay).and_return(timer_creator = double)
+        TimedSpamRejection::ActionController::Rejector.should_receive(:new).with(timer_creator, message).and_return(rejector = double)
+        klass.should_receive(:before_filter).with(rejector, :only => :create)
         subject
       end
       
@@ -38,22 +39,27 @@ describe TimedSpamRejection::ActionController do
       describe 'a controller instance' do
         subject { controller }
 
-        let(:controller) { with_reject_fast_create.new.tap do |c| c.stub(:flash).and_return(flash) end }
-        let(:flash)      { Hash.new }
+        let(:controller) { with_reject_fast_create.new.tap do |c|
+                             c.stub(:session).and_return(session)
+                             c.stub(:flash).and_return(flash)
+                             c.stub(:controller_name).and_return('the_controller_name')
+                           end }
+        let(:session) { Hash.new }
+        let(:flash)   { double(:now => double) }
 
-        it '#timed_spam_rejection_timer looks in the controller\'s flash[:timed_spam_rejection_timer]' do
-          flash.should_receive(:[]).with(:timed_spam_rejection_timer).and_return(timer = double)
+        it '#timed_spam_rejection_timer retrieves a timer from the session, using the controller_name' do
+          session[:timed_spam_rejection] = {'the_controller_name' => (timer = double)}
           controller.timed_spam_rejection_timer.should == timer
         end
         
-        it '#timed_spam_rejection_timer= sets the controller\'s flash[:timed_spam_rejection_timer]' do
+        it '#timed_spam_rejection_timer= sets the session using the controller_name' do
           controller.timed_spam_rejection_timer = (timer = double)
-          flash[:timed_spam_rejection_timer].should == timer
+          session[:timed_spam_rejection]['the_controller_name'].should == timer
         end
         
-        it '#timed_spam_rejection_error= sets the controller\'s flash[:error]' do
-          controller.timed_spam_rejection_error = 'Bad shiz'
-          flash[:error].should == "Bad shiz"
+        it '#timed_spam_rejection_error= sets the controller\'s flash.now.alert' do
+          flash.now.should_receive(:alert=).with("Bad Shiz")
+          controller.timed_spam_rejection_error = 'Bad Shiz'
         end
       end
     end
@@ -63,10 +69,8 @@ describe TimedSpamRejection::ActionController do
     describe ".new <delay>" do
       subject { filter }
       
-      let(:filter)  { TimedSpamRejection::ActionController::TimerFilter.new delay }
+      let(:filter)  { TimedSpamRejection::ActionController::TimerCreator.new delay }
       let(:delay)   { double }
-      
-      it { should be_a TimedSpamRejection::ActionController::TimerFilter }
       
       describe '#filter(controller)' do
         subject { filter.filter controller }
@@ -81,7 +85,7 @@ describe TimedSpamRejection::ActionController do
           subject
         end
         
-        it 'should store the timer as the controller\'s #timed_span_rejection_timer' do
+        it 'should store the timer as the controller\'s #timed_spam_rejection_timer' do
           controller.should_receive(:timed_spam_rejection_timer=).with(timer)
           subject
         end
@@ -93,13 +97,14 @@ describe TimedSpamRejection::ActionController do
     describe '.new <message>' do
       subject { filter }
       
-      let(:filter)  { TimedSpamRejection::ActionController::RejectorFilter.new message }
-      let(:message) { 'Too FAST!' }
+      let(:filter)        { TimedSpamRejection::ActionController::Rejector.new timer_creator, message }
+      let(:timer_creator) { double(:create_timer_on => nil) }
+      let(:message)       { 'Too FAST!' }
       
       describe '#filter <controller>' do
         subject { filter.filter controller }
         
-        let(:controller) { double timed_spam_rejection_timer: nil, :timed_spam_rejection_error= => nil, new: nil }
+        let(:controller) { double timed_spam_rejection_timer: nil, :timed_spam_rejection_timer= => nil, :timed_spam_rejection_error= => nil, new: nil }
         
         shared_examples_for 'a spammy submission' do
           it 'should call #new on controller' do
@@ -107,8 +112,13 @@ describe TimedSpamRejection::ActionController do
             subject
           end
           
-          it 'should add a timed_spam_rejection_error on the controller' do
+          it 'should set timed_spam_rejection_error on the controller to message' do
             controller.should_receive(:timed_spam_rejection_error=).with(message)
+            subject
+          end
+          
+          it 'should ask the timer creator to create a new timer on the controller' do
+            timer_creator.should_receive(:create_timer_on).with(controller)
             subject
           end
         end
@@ -118,7 +128,7 @@ describe TimedSpamRejection::ActionController do
         end
         
         context 'when a timer is set' do
-          let(:timer) { double }
+          let(:timer) { double reset: nil }
           
           before do controller.stub(:timed_spam_rejection_timer).and_return(timer) end
             
@@ -138,6 +148,11 @@ describe TimedSpamRejection::ActionController do
             
             it 'the controller should not have #new called on it' do
               controller.should_not_receive :new
+              subject
+            end
+            
+            it 'the controller\'s timer should be cleared' do
+              controller.should_receive(:timed_spam_rejection_timer=).with(nil)
               subject
             end
           end

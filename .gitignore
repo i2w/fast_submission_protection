@@ -3,3 +3,4 @@ log/*.log
 pkg/
 .rvmrc
 Gemfile.lock
+coverage/
