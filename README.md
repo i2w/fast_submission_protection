@@ -1,5 +1,7 @@
 # TimedSpamRejection
 
+[![Build Status](https://secure.travis-ci.org/i2w/timed_spam_rejection.png?branch=master)](http://travis-ci.org/i2w/timed_spam_rejection)
+
 ActionController plugin that facilitates rejecting spam based on how long the form submission took.
 
 This plugin was developed by [Ian White](http://github.com/ianwhite) and [Nicholas Rutherford](http://github.com/nruth) while working at [Distinctive Doors](http://distinctivedoors.co.uk) who have kindly agreed to release this under the MIT-LICENSE.
