@@ -26,4 +26,8 @@ require 'rspec/core/rake_task'
 
 RSpec::Core::RakeTask.new(:spec)
 
+desc "Run the specs with simplecov"
+task :simplecov => [:simplecov_env, :spec]
+task :simplecov_env do ENV['SIMPLECOV'] = '1' end
+
 task :default => :spec
