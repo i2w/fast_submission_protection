@@ -4,7 +4,7 @@ module TimedSpamRejection
     
     module ClassMethods
       def reject_fast_create options = {}
-        include TimerMethods unless self < TimerMethods
+        include RejectFastCreateMethods unless self < RejectFastCreateMethods
         
         timer_creator = TimerCreator.new options[:delay]
         rejector      = Rejector.new timer_creator, options[:message]
@@ -14,23 +14,28 @@ module TimedSpamRejection
       end
     end
     
-    module TimerMethods
+    module RejectFastCreateMethods
       extend ActiveSupport::Concern
       
       included do
-        hide_action *TimerMethods.instance_methods
+        hide_action *RejectFastCreateMethods.public_instance_methods
       end
       
+      # this method is responsible only for telling the user that
+      # their submission is rejected because it was too fast.
+      # Override this in your controller to customise the behaviour
+      def reject_fast_create message = nil
+        flash.now.alert = message
+        new
+        render :new unless performed?
+      end
+
       def timed_spam_rejection_timer
         timed_spam_rejection_storage[controller_name]
       end
       
-      def timed_spam_rejection_timer=(timer)
+      def timed_spam_rejection_timer= timer
         timed_spam_rejection_storage[controller_name] = timer
-      end
-      
-      def timed_spam_rejection_error=(error)
-        flash.now.alert = error
       end
       
     private
@@ -52,16 +57,14 @@ module TimedSpamRejection
     
     class Rejector
       def initialize timer_creator, message = nil
-        @timer_creator = timer_creator
-        @message = message || I18n.translate('timed_spam_rejection.error')
+        @timer_creator, @message = timer_creator, message || I18n.translate('timed_spam_rejection.error')
       end
       
       def reject_fast_create_on controller
         timer = controller.timed_spam_rejection_timer
         if !timer || timer.too_fast?
           @timer_creator.create_timer_on controller
-          controller.timed_spam_rejection_error = @message
-          controller.new
+          controller.reject_fast_create @message
         else
           controller.timed_spam_rejection_timer = nil
         end

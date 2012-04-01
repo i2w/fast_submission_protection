@@ -30,8 +30,8 @@ describe TimedSpamRejection::ActionController do
         subject
       end
       
-      it 'should hide_action for all TimerMethods, only once' do
-        klass.should_receive(:hide_action).with(*TimedSpamRejection::ActionController::TimerMethods.instance_methods).once
+      it 'should hide_action for all RejectFastCreateMethods, only once' do
+        klass.should_receive(:hide_action).with(*TimedSpamRejection::ActionController::RejectFastCreateMethods.public_instance_methods).once
         subject
         klass.reject_fast_create
       end
@@ -41,12 +41,10 @@ describe TimedSpamRejection::ActionController do
 
         let(:controller) { with_reject_fast_create.new.tap do |c|
                              c.stub(:session).and_return(session)
-                             c.stub(:flash).and_return(flash)
                              c.stub(:controller_name).and_return('the_controller_name')
                            end }
         let(:session) { Hash.new }
-        let(:flash)   { double(:now => double) }
-
+        
         it '#timed_spam_rejection_timer retrieves a timer from the session, using the controller_name' do
           session[:timed_spam_rejection] = {'the_controller_name' => (timer = double)}
           controller.timed_spam_rejection_timer.should == timer
@@ -57,15 +55,48 @@ describe TimedSpamRejection::ActionController do
           session[:timed_spam_rejection]['the_controller_name'].should == timer
         end
         
-        it '#timed_spam_rejection_error= sets the controller\'s flash.now.alert' do
-          flash.now.should_receive(:alert=).with("Bad Shiz")
-          controller.timed_spam_rejection_error = 'Bad Shiz'
+        describe '#reject_fast_create <error>' do
+          subject { controller.reject_fast_create message }
+          
+          let(:message) { 'Bad Shiz' }
+          let(:flash)   { double(:now => double(:alert= => nil)) }
+          
+          before do 
+            controller.stub(:performed?)
+            controller.stub(:new)
+            controller.stub(:render)
+            controller.stub(:flash).and_return(flash)
+          end
+            
+          it 'sets flash.alert.now to the error' do
+            flash.now.should_receive(:alert=).with(message)
+            subject
+          end
+          
+          it 'calls the #new method' do
+            controller.should_receive(:new)
+            subject
+          end
+          
+          it 'renders :new' do
+            controller.should_receive(:render).with(:new)
+            subject
+          end
+          
+          context 'when #new performs a render or redirect' do
+            before do controller.stub(:performed?).and_return(true) end
+            
+            it 'does not render :new' do
+              controller.should_not_receive(:render)
+              subject
+            end
+          end
         end
       end
     end
   end
   
-  describe 'TimerFilter' do
+  describe 'TimerCreator' do
     describe ".new <delay>" do
       subject { filter }
       
@@ -93,7 +124,7 @@ describe TimedSpamRejection::ActionController do
     end
   end
   
-  describe 'RejectorFilter' do
+  describe 'Rejector' do
     describe '.new <message>' do
       subject { filter }
       
@@ -104,21 +135,16 @@ describe TimedSpamRejection::ActionController do
       describe '#filter <controller>' do
         subject { filter.filter controller }
         
-        let(:controller) { double timed_spam_rejection_timer: nil, :timed_spam_rejection_timer= => nil, :timed_spam_rejection_error= => nil, new: nil }
+        let(:controller) { double timed_spam_rejection_timer: nil, :timed_spam_rejection_timer= => nil, :reject_fast_create => nil }
         
         shared_examples_for 'a spammy submission' do
-          it 'should call #new on controller' do
-            controller.should_receive(:new)
-            subject
-          end
-          
-          it 'should set timed_spam_rejection_error on the controller to message' do
-            controller.should_receive(:timed_spam_rejection_error=).with(message)
-            subject
-          end
-          
           it 'should ask the timer creator to create a new timer on the controller' do
             timer_creator.should_receive(:create_timer_on).with(controller)
+            subject
+          end
+          
+          it 'should call #reject_fast_create co the controller, with its error message' do
+            controller.should_receive(:reject_fast_create).with(message)
             subject
           end
         end
@@ -141,13 +167,8 @@ describe TimedSpamRejection::ActionController do
           context 'and the timer says not too_fast' do
             before do timer.stub(:too_fast?).and_return(false) end
             
-            it 'the controller should not contain an timed_spam_rejection_error' do
-              controller.should_not_receive(:timed_spam_rejection_error)
-              subject
-            end
-            
-            it 'the controller should not have #new called on it' do
-              controller.should_not_receive :new
+            it 'the controller should not reject_fast_create' do
+              controller.should_not_receive(:reject_fast_create)
               subject
             end
             
@@ -157,14 +178,14 @@ describe TimedSpamRejection::ActionController do
             end
           end
         end
-      end
       
-      context 'when <message> is nil (the default)' do
-        let(:message) { nil }
-        
-        it 'should use the I18n translation for "timed_spam_rejection.error"' do
-          I18n.should_receive(:translate).with('timed_spam_rejection.error')
-          subject
+        context 'when <message> is nil (the default)' do
+          let(:message) { nil }
+
+          it 'should use the I18n translation for "timed_spam_rejection.error"' do
+            I18n.should_receive(:translate).with('timed_spam_rejection.error')
+            subject
+          end
         end
       end
     end

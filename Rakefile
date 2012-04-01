@@ -16,7 +16,7 @@ RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title    = 'TimedSpamRejection'
   rdoc.options << '--line-numbers'
-  rdoc.rdoc_files.include('README.md')
+  rdoc.rdoc_files.include('README.md', 'CHANGELOG', 'MIT-LICENSE')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 

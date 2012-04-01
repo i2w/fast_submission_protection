@@ -1,3 +1,3 @@
 en:
   timed_spam_rejection:
-    error: "Please wait 5 seconds from page load before submitting this form. This is an anti-spam measure."
+    error: "Please wait 5 seconds from page load before submitting this form. This is an anti-spam measure. Click your browser's back button to return."

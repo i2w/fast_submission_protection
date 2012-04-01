@@ -22,8 +22,24 @@ In your Gemfile:
       reject_fast_submission :delay => 10.seconds, :message => 'Whoah cowboy!'
     end
 
-If the time taken between the `new` and `create` action is less than than the delay, an alert
-is added to the flash, and the `new` action is re-rendered.
+If the time taken between the `new` and `create` action is less than than the delay, `reject_fast_create`
+is called on the controller, with an error message.
+
+The default implementation of `reject_fast_create` does the following:
+
+    flash.now.alert = error_message
+    new
+    render :new unless performed?
+    
+Which will render the new form again, with a flash alert.  Depending on what your `new` action looks like, the
+form submission params may not be rendered.  You are encouraged to provide your own implementation.
+
+The `reject_fast_create` method must be public (so the Rejector can call it), and it is in the
+hidden_actions list by default.
+
+## i18n
+
+The default error message is looked up using the key `timed_spam_rejection.error`
 
 ## Development
 
