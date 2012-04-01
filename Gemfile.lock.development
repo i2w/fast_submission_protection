@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    timed_spam_rejection (0.0.2)
+    timed_spam_rejection (0.0.3)
       rails (>= 3)
 
 GEM

@@ -1,3 +1,6 @@
+= 0.0.3
+  * Docfix
+
 = 0.0.2
   * Adds #reject_fast_create which has some minimal default behaviour, encourages users to override
 

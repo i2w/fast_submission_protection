@@ -15,11 +15,11 @@ In your Gemfile:
 ## Example Usage
 
     class FeedbackController < ApplicationController
-      reject_fast_submission # default delay is 5 seconds
+      reject_fast_create # default delay is 5 seconds
     end
 
     class CommentsController < ApplicationController
-      reject_fast_submission :delay => 10.seconds, :message => 'Whoah cowboy!'
+      reject_fast_create :delay => 10.seconds, :message => 'Whoah cowboy!'
     end
 
 If the time taken between the `new` and `create` action is less than than the delay, `reject_fast_create`
