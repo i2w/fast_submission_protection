@@ -1,6 +1,8 @@
-# TimedSpamRejection
+# FastSubmissionProtection
 
-[![Build Status](https://secure.travis-ci.org/i2w/timed_spam_rejection.png?branch=master)](http://travis-ci.org/i2w/timed_spam_rejection)
+*This is experimental and the API is currently subject to sudden and massive change!*
+
+[![Build Status](https://secure.travis-ci.org/i2w/fast_submission_protection.png?branch=master)](http://travis-ci.org/i2w/timed_spam_rejection)
 
 ActionController plugin that facilitates rejecting spam based on how long the form submission took.
 
@@ -10,43 +12,61 @@ This plugin was developed by [Ian White](http://github.com/ianwhite) and [Nichol
 
 In your Gemfile:
 
-    gem 'timed_spam_rejection'
+    gem 'fast_submission_protection'
 
 ## Example Usage
 
     class FeedbackController < ApplicationController
-      reject_fast_create # default delay is 5 seconds
+      protect_from_fast_submission # default delay is 5 seconds, protects create from fast submission
     end
 
     class CommentsController < ApplicationController
-      reject_fast_create :delay => 10.seconds, :message => 'Whoah cowboy!'
+      # protects a Comment#update from happening too quickly, and rescues with custom behaviour
+      protect_from_fast_submission :delay => 10, :start => [:edit, :update], :finish => [:update], :rescue => false
+      
+      rescue_from FastSubmissionProtection::SubmissionTooFastError, :with => lambda {|c| c.redirect_to :edit, :alert => 'Don't comment in anger!' }
     end
-
-If the time taken between the `new` and `create` action is less than than the delay, `reject_fast_create`
-is called on the controller, with an error message.
-
-The default implementation of `reject_fast_create` does the following:
-
-    flash.now.alert = error_message
-    new
-    render :new unless performed?
     
-Which will render the new form again, with a flash alert.  Depending on what your `new` action looks like, the
-form submission params may not be rendered.  You are encouraged to provide your own implementation.
+See `FastSubmissionProtection::Controller#protect_from_fast_submission` for more details.
 
-The `reject_fast_create` method must be public (so the Rejector can call it), and it is in the
-hidden_actions list by default.
+## Filters
 
-## i18n
+You can start and finish the timed submission in different controllers, just set up the filters manually:
 
-The default error message is looked up using the key `timed_spam_rejection.error`
+    class WelcomeController < ApplicationController
+      before_filter FastSubmissionProtection::StartFilter.new('abused_form'), :only => :feedback_form
+    end
+    
+    class FeedbackController < ApplicationController
+      before_filter FastSubmissionProtection::FinishFilter.new('abused_form'), :only => :feedback
+    end
+    
+## Instance methods
+
+You can start and finish at any point within a controller
+
+    start_timed_submission 'abused_form'
+    finish_timed_submission 'abused_form', 20 # raises FastSubmissionProtection::SubmissionTooFastError if the above line was < 20 seconds ago
+    
+Other methods, like reset timer, and clear timer are available on the timer object
+
+    submission_timer('abused_form') # => a FastSubmissionProtection::SubmissionTimer
+
+## Rescue
+
+if you include FastSubmissionProtection::Rescue, the error is rescued with an error page with HTTP status 420 (enhance your calm).
+This is included by default when you specify `protect_from_fast_submission`.
+
+The default error page resides in 'views/fast_submission_protection/error'.  Simply add this page to your views directory to use a custom page.
+
+Another option is to do something like put a message in the flash, and re-render the new page.  Simply rescue_from FastSubmissionProtection::SubmissionTimer.
 
 ## Development
 
 Grab the project, use the last known good set of deps, and run the specs:
 
-    git clone http://github.com/i2w/timed_spam_rejection
-    cd timed_spam_rejection
+    git clone http://github.com/i2w/fast_submission_protection
+    cd fast_submission_protection
     cp Gemfile.lock.development Gemfile.lock
     bundle
     rake

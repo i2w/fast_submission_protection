@@ -1,0 +1,4 @@
+require 'fast_submission_protection/submission_timer'
+require 'fast_submission_protection/controller'
+require 'fast_submission_protection/engine'
+require 'fast_submission_protection/version'

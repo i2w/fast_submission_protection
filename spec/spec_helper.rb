@@ -7,4 +7,4 @@ end
 
 require 'rails/all'
 require 'rspec/rails'
-require 'timed_spam_rejection'
+require 'fast_submission_protection'
