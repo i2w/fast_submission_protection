@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = FastSubmissionProtection::VERSION
   s.authors     = ["Ian White", "Nicholas Rutherford"]
   s.email       = ["ian@i2wdev.com"]
-  s.homepage    = "http://github.com/i2w/timed_spam_rejection"
+  s.homepage    = "http://github.com/i2w/fast_submission_protection"
   s.summary     = "Reject form submissions based on the time taken to submit them"
   s.description = "Reject form submissions based on the time taken to submit them. Version #{FastSubmissionProtection::VERSION}"
 
@@ -19,5 +19,4 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">=3"
   
   s.add_development_dependency "rspec-rails", ">=2"
-  s.add_development_dependency "sqlite3"
 end

@@ -7,4 +7,5 @@ gemspec
 
 group :test do
   gem 'simplecov', :require => false
+  gem 'activerecord-nulldb-adapter', :git => 'http://github.com/nulldb/nulldb', :require => false
 end

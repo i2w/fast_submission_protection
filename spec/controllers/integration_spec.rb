@@ -1,5 +1,22 @@
 require 'spec_helper'
 
+class Rails::Application::Configuration
+  def database_configuration
+    {'test' => {'adapter' => 'nulldb'}}
+  end
+end
+
+module FastSubmissionProtection
+  class Application < Rails::Application
+    config.active_support.deprecation = :stderr
+  end
+end
+
+class ApplicationController < ActionController::Base
+end
+
+FastSubmissionProtection::Application.initialize!
+
 describe 'A controller with protect_from_fast_submission' do
   controller do
     self.allow_fast_submission_protection = true # test mode turns this off be default

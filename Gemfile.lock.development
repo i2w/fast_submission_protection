@@ -1,7 +1,14 @@
+GIT
+  remote: http://github.com/nulldb/nulldb
+  revision: fa3487a2eec39096814cc2d27e9a5a68e7562ace
+  specs:
+    activerecord-nulldb-adapter (0.2.1)
+      activerecord (>= 2.0.0)
+
 PATH
   remote: .
   specs:
-    fast_submission_protection (0.1.1)
+    fast_submission_protection (0.1.2)
       rails (>= 3)
 
 GEM
@@ -95,7 +102,6 @@ GEM
       hike (~> 1.2)
       rack (~> 1.0)
       tilt (~> 1.1, != 1.3.0)
-    sqlite3 (1.3.5)
     thor (0.14.6)
     tilt (1.3.3)
     treetop (1.4.10)
@@ -107,7 +113,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activerecord-nulldb-adapter!
   fast_submission_protection!
   rspec-rails (>= 2)
   simplecov
-  sqlite3
