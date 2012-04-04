@@ -1,6 +1,6 @@
 # FastSubmissionProtection
 
-[![Build Status](https://secure.travis-ci.org/i2w/fast_submission_protection.png?branch=master)](http://travis-ci.org/i2w/timed_spam_rejection)
+[![Build Status](https://secure.travis-ci.org/i2w/fast_submission_protection.png?branch=master)](http://travis-ci.org/i2w/fast_submission_protection)
 
 ActionController engine that facilitates rejecting spam based on how long the form submission took.
 
