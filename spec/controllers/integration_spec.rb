@@ -1,18 +1,8 @@
 require 'spec_helper'
 
-module FastSubmissionProtection
-  class Application < Rails::Application
-    config.i18n.default_locale = :en
-  end
-end
-
-class ApplicationController < ActionController::Base
-  include Rails.application.routes.url_helpers
-end
-
 describe 'A controller with protect_from_fast_submission' do
   controller do
-    protect_from_fast_submission :name => 'test', :rescue => false
+    protect_from_fast_submission :name => 'test'
     
     def new
       render_new
@@ -38,9 +28,6 @@ describe 'A controller with protect_from_fast_submission' do
     def render_create
       render :nothing => true
     end
-    
-    def created
-    end
   end
   
   context 'post :create' do
@@ -60,16 +47,20 @@ describe 'A controller with protect_from_fast_submission' do
     end
     
     shared_examples_for 'a spammy form posting' do
-      it do expect{ subject }.to raise_error FastSubmissionProtection::SubmissionTooFastError end
+      it 'should render the fast_submission_protection error page' do
+        subject
+        controller.should render_template('fast_submission_protection/error')
+      end
       
-      it 'should not execute create' do
-        controller.should_not_receive(:created)
+      it 'should not have created' do
+        controller.should_not_receive :created
+        subject
       end
     end
     
     shared_examples_for 'a non spammy form posting' do
-      it 'should execute :create' do
-        controller.should_receive(:created)
+      it 'should have created successfully' do
+        controller.should_receive :created
         subject
       end
     end

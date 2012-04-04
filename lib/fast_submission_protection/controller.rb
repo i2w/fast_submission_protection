@@ -106,8 +106,8 @@ module FastSubmissionProtection
     end
 
   protected
-    def render_fast_submission_protection_error
-      render :template => 'fast_submission_protection/error', :layout => false, :status => 420
+    def render_fast_submission_protection_error exception
+      render :template => 'fast_submission_protection/error', :locals => {:delay => exception.delay}, :layout => false, :status => 420
     end
   end
 end
