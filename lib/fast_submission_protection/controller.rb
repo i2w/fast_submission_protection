@@ -26,10 +26,10 @@ module FastSubmissionProtection
       #   before_filter FastSubmissionProtection::StartFilter.new('abused_form_post'), :only => [:new]
       #   
       #   # At the instance level, wherever you want, perhaps in an action
-      #   start_timed_submission('often_abused_form_post') # to start
+      #   submission_timer('often_abused_form_post').start # to start
       #   
       #   # later, somewhere else
-      #   finish_timed_submission('often_abused_form_post') # to finsih, raises SubmissionTooFastError if too fast
+      #   submission_timer('often_abused_form_post').finish # to finsih, raises SubmissionTooFastError if too fast
       def protect_from_fast_submission options = {}
         delay  = options[:delay]
         start  = options[:start] || [:new, :create]
@@ -44,35 +44,24 @@ module FastSubmissionProtection
     end
     
     included do
-      hide_action :start_timed_submission, :finish_timed_submission
-    end
-    
-    def start_timed_submission name
-      submission_timer(name).start
-    end
-    
-    def finish_timed_submission name, delay = nil
-      if protect_from_fast_submission?
-        timer = submission_timer(name, delay)
-        if timer.too_fast?
-          logger.warn "WARNING: timed submission too fast" if logger
-          timer.restart
-          raise SubmissionTooFastError.new(name, delay)
-        else
-          timer.clear
-        end
+      hide_action :submission_timer, :protect_from_fast_submission?
+
+      # Controls whether fast submission protection is turned on or not. Turned off by default only in test mode.
+      config_accessor :allow_fast_submission_protection
+      if allow_fast_submission_protection.nil?
+        self.allow_fast_submission_protection = (Rails.env != 'test')
       end
     end
     
-  protected
     def submission_timer name, delay = nil
       SubmissionTimer.new timed_submission_storage, name, delay
     end
 
     def protect_from_fast_submission?
-      request.post? || request.put?
+      allow_fast_submission_protection && (request.post? || request.put?)
     end
     
+  protected
     def timed_submission_storage
       session[:_fsp] ||= {}
     end
@@ -80,22 +69,16 @@ module FastSubmissionProtection
   
   class StartFilter < Struct.new(:name)
     def filter controller
-      controller.start_timed_submission name
+      controller.submission_timer(name).start
     end
   end
   
   class FinishFilter < Struct.new(:name, :delay)
     def filter controller
-      controller.finish_timed_submission name, delay
+      if controller.protect_from_fast_submission?
+        controller.submission_timer(name, delay).finish
+      end
     end
-  end
-  
-  class FastSubmissionProtection::SubmissionTooFastError < RuntimeError
-    def initialize name, delay
-      @name, @delay = name, delay
-    end
-    
-    attr_reader :name, :delay
   end
 
   module Rescue
@@ -107,7 +90,7 @@ module FastSubmissionProtection
 
   protected
     def render_fast_submission_protection_error exception
-      render :template => 'fast_submission_protection/error', :locals => {:delay => exception.delay}, :layout => false, :status => 420
+      render :template => 'fast_submission_protection/error', :locals => {:exception => exception}, :layout => false, :status => 420
     end
   end
 end

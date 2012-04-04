@@ -2,7 +2,9 @@ require 'spec_helper'
 
 describe 'A controller with protect_from_fast_submission' do
   controller do
-    protect_from_fast_submission :name => 'test'
+    self.allow_fast_submission_protection = true # test mode turns this off be default
+    
+    protect_from_fast_submission :name => 'a_submission'
     
     def new
       render_new
@@ -27,6 +29,9 @@ describe 'A controller with protect_from_fast_submission' do
     
     def render_create
       render :nothing => true
+    end
+    
+    def created
     end
   end
   

@@ -1,3 +1,8 @@
+= 0.1.1
+  * Supply an error template which includes the delay
+  * Adds config.action_controller.allow_fast_submission_protection (off by default in test mode)
+  * Stabilise the API
+  
 = 0.1.0
   * Renamed to fast_submission_protection
   * Raise an error to handle fast submission
