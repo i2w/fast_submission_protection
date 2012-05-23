@@ -4,7 +4,7 @@
 
 ActionController engine that facilitates rejecting spam based on how long the form submission took.
 
-This was developed by [Ian White](http://github.com/ianwhite) and [Nicholas Rutherford](http://github.com/nruth) while working at [Distinctive Doors](http://distinctivedoors.co.uk) who have kindly agreed to release this under the MIT-LICENSE.
+This was developed by [Ian White](http://github.com/ianwhite) and [Nicholas Rutherford](http://github.com/nruth) while working at [Distinctive Doors](http://distinctivedoors.co.uk/oss) who have kindly agreed to release this under the MIT-LICENSE.
 
 ## Installation
 

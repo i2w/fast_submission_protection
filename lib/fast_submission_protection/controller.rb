@@ -95,7 +95,7 @@ module FastSubmissionProtection
           render :template => 'fast_submission_protection/error', :locals => {:exception => exception}, :layout => false, :status => 420
         end
         format.all do
-          render :nothing => true, :status => "420 Enhance Your Calm" 
+          render :nothing => true, :status => "420 Enhance Your Calm"
         end
       end
     end
